@@ -15,7 +15,7 @@ C      energ�a del cumulante at�mico, asociado a la banda de conducci�n.
       PARAMETER (DT1=1,DT2=2,DT38=38,DT11=11,OUT=3)
       DIMENSION U(17),RF(17),EN(16),RC(13),HVEC(1001),XKJ(501,501),
      *RFD(16),RFS(16),UD(16),US(16)
-
+      CHARACTER(100) :: Tconsole, Archivo1, Archivo2
         EXTERNAL FMU
         EXTERNAL FMU2
 c        EXTERNAL PIMGCOEF1
@@ -36,11 +36,22 @@ c        EXTERNAL PIMGCOEF1
         COMMON/RF22/DELTA22
         COMMON/QD1/EF1,VQ1,EL1,TXF1,U1
         COMMON/QD2/EF2,VQ2,EL2,TXF2,U2
-        
-      OPEN (UNIT=DT1,FILE='Ex2QDsEfVar(15-9-21)T=6+.dat',
+       
+      IF(COMMAND_ARGUMENT_COUNT().NE.1)THEN
+        WRITE(*,*)'ERROR, ONE COMMAND-LINE ARGUMENTS REQUIRED, STOPPING'
+        STOP
+      ENDIF
+      
+      CALL GET_COMMAND_ARGUMENT(1,Tconsole)
+      
+      OPEN (UNIT=DT1,FILE="DATA-"//trim(Tconsole)//".dat",
      *     STATUS='UNKNOWN')
-      OPEN (UNIT=DT2,FILE='Ex2QDsEfVAR(15-9-21)T=6-.dat',
+      OPEN (UNIT=DT2,FILE="DATA+"//trim(Tconsole)//".dat",
      *     STATUS='UNKNOWN')
+c     Chequea si se recibio un argumento por consola
+     
+     
+      
         pi=3.14159265358979323D0        
         CC=1.0d0/pi
 C       ESTOS SON LOS DATOS PARA UN CANAL BALISTICO
@@ -63,8 +74,9 @@ C       ESTOS SON LOS DATOS PARA UN CANAL BALISTICO
         EQ=AMU
         EL2=EQ
         EL1=AMU
-C      EL1=3.0D-1*DELTA
-        T=4.0D0*DELTA
+C     EL1=3.0D-1*DELTA
+       Read(Tconsole,*)T  
+        T=T*DELTA
         BETA=1.0D0/T
 
         EPS=1.0D-8
