@@ -195,7 +195,7 @@ C        READ(*,*)AEFI,AEFF,NEF
 c       AEFI=-22.0D0*DELTA
         AEFF=AMU-45.0D0*DELTA
 C       AEFF=-22*DELTA
-        NEF=300
+        NEF=1
         EQ=AMU
 C       EQ=2.0D-1*DELTA
         EL1=EQ
@@ -361,7 +361,7 @@ C       IF ((AQD2.EQ.(1.0d0)).AND.(AQD1.EQ.(1.0D0))) THEN
       IF ((DIF2.LT.(1.0d0)).AND.(DIF2BB.LT.(5.0D0))) THEN
 
 C180   FORMAT(19F16.8)
- 1       WRITE(DT2,180)EF1/DELTA,EL1/DELTA,EL2/DELTA,DIF2,DIF2BB,G2,S,AK,
+ 1      WRITE(DT2,180)EF1/DELTA,EL1/DELTA,EL2/DELTA,DIF2,DIF2BB,G2,S,AK,
      *TEM,WFR,TXF1,TXF2,FASELO,FASEQ2,FASEQ1,FASECON,E,T/DELTA,EF2/DELTA
 
        ELSE
@@ -473,8 +473,8 @@ c      TR=T/Tk   Para Pi/3, Tk=850 mK
 
 c       DELTA=PI/2.0d0
 c       DELTA=1.0002d0*PI/2.0D0
-        DELTA=0.848209d0*PI/2.0d0
-
+c        DELTA=0.848209d0*PI/2.0d0
+        DELTA=0.d0
         AR=B-A
 
         EPSIL=1.0D-8
@@ -576,11 +576,11 @@ c   AL1sIMETRICO CASO LATERAL
       TRR=TR*TK
       
 *************************************
-      WRITE(DT31,5900)TR,Raiz1,Raiz2
-c     WRITE(DT31,5900)TR,TRR,GD,GDL,SD,SDL
-c     * ,(3.0d0*AKD/(TR*Pi*Pi))
-c     * ,(3.0d0*AKDL/(Pi*Pi*TR))
-c     * ,AZT,AZTL,EPSI,EPSIL,GD*SD/TRR,Raiz1,Raiz2
+c      WRITE(DT31,5900)TR,Raiz1,Raiz2
+      WRITE(DT31,5900)TR,TRR,GD,GDL,SD,SDL
+     * ,(3.0d0*AKD/(TR*Pi*Pi))
+     * ,(3.0d0*AKDL/(Pi*Pi*TR))
+     * ,AZT,AZTL,EPSI,EPSIL,GD*SD/TRR
 80    CONTINUE
 5900  FORMAT(13F15.8)
       CLOSE(DT31)
