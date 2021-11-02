@@ -195,7 +195,7 @@ C        READ(*,*)AEFI,AEFF,NEF
 c       AEFI=-22.0D0*DELTA
         AEFF=AMU-45.0D0*DELTA
 C       AEFF=-22*DELTA
-        NEF=1
+        NEF=300
         EQ=AMU
 C       EQ=2.0D-1*DELTA
         EL1=EQ
