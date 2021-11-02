@@ -119,7 +119,7 @@ c      LA TEMPERATURA
 
         LT=1
 
-        TI=T*DELTA
+        TI=T
         TF=(T+1)*DELTA
 C        WRITE(6,33)
 C33      FORMAT(' LT=1',' TI=DELTA',' TF=1.')
