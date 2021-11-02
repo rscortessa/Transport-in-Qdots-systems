@@ -119,8 +119,8 @@ c      LA TEMPERATURA
 
         LT=1
 
-        TI=4.0d0*DELTA
-        TF=7.0d0*DELTA
+        TI=T*DELTA
+        TF=(T+1)*DELTA
 C        WRITE(6,33)
 C33      FORMAT(' LT=1',' TI=DELTA',' TF=1.')
 C        READ(*,*)LT,TI,TF
@@ -195,7 +195,7 @@ C        READ(*,*)AEFI,AEFF,NEF
 c       AEFI=-22.0D0*DELTA
         AEFF=AMU-45.0D0*DELTA
 C       AEFF=-22*DELTA
-        NEF=300
+        NEF=10
         EQ=AMU
 C       EQ=2.0D-1*DELTA
         EL1=EQ
