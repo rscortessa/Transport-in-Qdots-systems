@@ -15,7 +15,7 @@ C      energ�a del cumulante at�mico, asociado a la banda de conducci�n.
       PARAMETER (DT1=1,DT2=2,DT38=38,DT11=11,OUT=3)
       DIMENSION U(17),RF(17),EN(16),RC(13),HVEC(1001),XKJ(501,501),
      *RFD(16),RFS(16),UD(16),US(16)
-      CHARACTER(100) :: Tconsole, Archivo1, Archivo2
+      CHARACTER(100) :: Tconsole, PESFILE 
         EXTERNAL FMU
         EXTERNAL FMU2
 c        EXTERNAL PIMGCOEF1
@@ -64,7 +64,7 @@ C       ESTOS SON LOS DATOS PARA UN CANAL BALISTICO
         EF2=-10.0d0*DELTA
         EF=EF2
 
-        ETA=1.0d-4
+        ETA=1.0d-6
         
         COU=20.0D0*DELTA
         U2=COU
@@ -196,7 +196,7 @@ c       AEFI=-22.0D0*DELTA
 C        AEFF=AMU-45.0D0*DELTA
        AEFF=AMU-90.0D0*DELTA
 C     AEFF=-22*DELTA
-        NEF=300
+        NEF=1
         EQ=AMU
 C       EQ=2.0D-1*DELTA
         EL1=EQ
@@ -206,8 +206,8 @@ C       EQ=2.0D-1*DELTA
 4000    CONTINUE
 
         DO 5002 IB=1,NEF
-        AEF=AEFI+(IB-1)*DEF
-c        AEF=-40.0D0*DELTA
+c        AEF=AEFI+(IB-1)*DEF
+        AEF=-4.394160033584097*DELTA+6.406232527887537*T
         EF=AEF
         EF1=EF
            
@@ -290,9 +290,17 @@ c     *       'ROF=',F10.8,1X,'DIF=',F10.8)
        ELSE
        CONTINUE
        ENDIF
+c      A=-100*DELTA
+c     B=100*DELTA
+       A=-90*DELTA
+       B=-10*DELTA
+      NTT=10000
+      PESFILE="PES+T"//trim(Tconsole)//".dat"
+      CALL GRAF(A,B,NTT,PESFILE)
 
-
-      EFF=AEFI-(IB-1)*DEF
+c      EFF=AEFI-(IB-1)*DEF
+c     PARA UN VALOR SINGULAR:
+       EFF=AEFI-(AEF-AEFI)
 C      EFF=-2.0D0*DELTA-(IB-1)*DEF
 c       EFF=2.0D0*DELTA
        EF=EFF
@@ -365,6 +373,9 @@ C180   FORMAT(19F16.8)
  1      WRITE(DT2,180)EF1/DELTA,EL1/DELTA,EL2/DELTA,DIF2,DIF2BB,G2,S,AK,
      *TEM,WFR,TXF1,TXF2,FASELO,FASEQ2,FASEQ1,FASECON,E,T/DELTA,EF2/DELTA
 
+      PESFILE="PES-T"//trim(Tconsole)//".dat"
+      CALL GRAF(A,B,NTT,PESFILE)
+      
        ELSE
        CONTINUE
        ENDIF
@@ -377,15 +388,9 @@ c4002    CONTINUE
 5002    CONTINUE
      
 869   CONTINUE
-
-      A=1.0d-2
-      B=4.0d0
-      NTT=1000
        
 C Esto es para ekl ajust
 
-
-c      CALL GRAF(A,B,NTT)
 c      CALL Ajus(A,B,NTT)
       
       CLOSE(DT1)
@@ -590,7 +595,7 @@ c      WRITE(DT31,5900)TR,Raiz1,Raiz2
       RETURN
       END
 
-        FUNCTION ZGCOEF1(EW)
+        FUNCTION ZGCOEF1(EW,ETA)
 *****************************************
         IMPLICIT COMPLEX*16 (X-Z)
         IMPLICIT REAL*8 (A-H,O-W)
@@ -603,11 +608,9 @@ c      WRITE(DT31,5900)TR,Raiz1,Raiz2
         V2=VQ1*VQ1
         V21=V2       
         COU=U1
-	ETTA=1.D-4
+c	ETTA=1.D-4
         EQ=EL1
-
-        ZW=DCMPLX(EW,ETTA)
-
+        ZW=DCMPLX(EW,ETA)
 c   ESTO ES PARA los 2 qds inmersos.
         CALL GKONDO(ZW,ZGF,ZGC,ZGFC,ZG11,ZG33,ZG22,ZG44,ZG13,ZG31,
      *ZGFXATSS,ZG00,ZM)
@@ -665,8 +668,8 @@ c        V=VQ1
 c        V2=VQ1*VQ1
 c        COU=U1
 c        EQ=EL1
-
-       FAS=DIMAG(ZGCOEF1(EW))/DREAL(ZGCOEF1(EW))
+        ETA=1.0D-4
+       FAS=DIMAG(ZGCOEF1(EW,ETA))/DREAL(ZGCOEF1(EW,ETA))
        FAS=DATAN(FAS)
         FAS=FAS/2.0D0
 
@@ -675,8 +678,8 @@ CC Esto es una prueba
       pi=1.0d0/CC
 c      FAS=FAS+0.5D0*pi
 
-      PIMG=DREAL(ZGCOEF1(EW))*DREAL(ZGCOEF1(EW))+
-     *    DIMAG(ZGCOEF1(EW))*DIMAG(ZGCOEF1(EW))
+      PIMG=DREAL(ZGCOEF1(EW,ETA))*DREAL(ZGCOEF1(EW,ETA))+
+     *    DIMAG(ZGCOEF1(EW,ETA))*DIMAG(ZGCOEF1(EW,ETA))
         PIMG=DSQRT(PIMG)
         PIMGCOEF1=(DSQRT(PIMG))*DSIN(FAS)
 
@@ -698,7 +701,7 @@ c        PIMGCOEF1=PIMGCOEF1/2.0D0
         RETURN
         END
 
-         FUNCTION ZGCON(EW)
+         FUNCTION ZGCON(EW,ETA)
 *****************************************
         IMPLICIT COMPLEX*16 (X-Z)
         IMPLICIT REAL*8 (A-H,O-W)
@@ -713,18 +716,18 @@ c        EF=EF1
 c        V=VQ1
 c        V2=VQ1*VQ1
 c        COU=U1
-c	ETTA=1.D-4
+c	ETA=1.D-4
 c        EQ=EL1
 
-       FAS=DIMAG(ZGCOEF1(EW))/DREAL(ZGCOEF1(EW))
+       FAS=DIMAG(ZGCOEF1(EW,ETA))/DREAL(ZGCOEF1(EW,ETA))
        FAS=DATAN(FAS)
         FAS=FAS/2.0D0
 cc PRUEBA
         pi=1.0d0/CC
 c        FAS=FAS+0.5D0*pi
 
-      PIM2=DREAL(ZGCOEF1(EW))*DREAL(ZGCOEF1(EW))+
-     *    DIMAG(ZGCOEF1(EW))*DIMAG(ZGCOEF1(EW))
+      PIM2=DREAL(ZGCOEF1(EW,ETA))*DREAL(ZGCOEF1(EW,ETA))+
+     *    DIMAG(ZGCOEF1(EW,ETA))*DIMAG(ZGCOEF1(EW,ETA))
         PIM2=DSQRT(PIM2)
         PIM2=DSQRT(PIM2)
         PIM=PIM2*DSIN(FAS)
@@ -759,9 +762,9 @@ C        PIMAG=PIMGCOEF1(EW)
 
         EXTERNAL ZGLOCAL
         EXTERNAL FERM
-        
-        A=DIMAG(ZGLOCAL(EW))
-        B=DREAL(ZGLOCAL(EW))
+        ETA=1.0d-4
+        A=DIMAG(ZGLOCAL(EW,ETA))
+        B=DREAL(ZGLOCAL(EW,ETA))
         FER=FERM(EW)
 	DFER=FER*(1.D0-FER)*BETA 
         
@@ -843,8 +846,8 @@ C        COMMON/QD1/EF1,VQ1,EL1,TXF1,U1
         EXTERNAL ZGCON
         
 
-        A=DIMAG(ZGCON(EW))
-        B=DREAL(ZGCON(EW))
+        A=DIMAG(ZGCON(EW,1.D-4))
+        B=DREAL(ZGCON(EW,1.D-4))
         FER=FERM(EW)
 	DFER=FER*(1.D0-FER)*BETA 
         
@@ -881,7 +884,7 @@ C        COMMON/QD1/EF1,VQ1,EL1,TXF1,U1
 
         
 
-        FUNCTION ZGLOCAL(EW)
+        FUNCTION ZGLOCAL(EW,ETA)
 *****************************************
         IMPLICIT COMPLEX*16 (X-Z)
         IMPLICIT REAL*8 (A-H,O-W)
@@ -894,11 +897,14 @@ C        COMMON/QD1/EF1,VQ1,EL1,TXF1,U1
 c        EF=EF1
 c        V=VQ1
 c        V2=VQ1*VQ1
-c        COU=U1
-	ETTA=1.0D-4
-c        EQ=EL1
+c     COU=U1
+c CODIGO ORIGINAL        
+c	ETA=1.0D-4
+c     CODIGO BOUND STATES
+c        ETA=AA
+c     EQ=EL1
         
-        Z1=ZGCOEF1(EW)
+        Z1=ZGCOEF1(EW,ETA)
 
         EF=EF2
         V=VQ2
@@ -906,7 +912,7 @@ c        EQ=EL1
         COU=U2
         EQ=EL2
         
-        ZW=DCMPLX(EW,ETTA)
+        ZW=DCMPLX(EW,ETA)
         CALL GKONDO(ZW,ZGF,ZGC,ZGFC,ZG11,ZG33,ZG22,ZG44,ZG13,ZG31,
      *ZGFXATSS,ZG00,ZM)
 ************************************************
@@ -1729,11 +1735,12 @@ c      COMMON/DELTA/DELTA
         D2=D*D
         ZW2=ZW*ZW
 C        ETTA=0.0031D0
-        ETTA=1.D-6
+c        ETTA=1.D-6
         AVG4=PI*V/(2.D0*D)
         VG2=V*V*AVG4*AVG4
         BW=DREAL(ZW)
-        ZWD=DCMPLX(BW,ETTA)
+        ETA=DIMAG(ZW)
+        ZWD=ZW
 C      ZGFT=RF(1)/(ZWD-U(1))+RF(2)/(ZWD-U(2))+RF(3)/(ZWD-U(3))+
 C     *RF(4)/(ZWD-U(4))+RF(5)/(ZWD-U(5))+RF(6)/(ZWD-U(6))+
 C     *RF(7)/(ZWD-U(7))+RF(8)/(ZWD-U(8))+RF(9)/(ZWD-U(9))+
@@ -2382,11 +2389,11 @@ C        ETTA=1.5d0*TT
         END
 
 ***********************************************************************
-        SUBROUTINE GRAF(OI,OF,NTT)
+        SUBROUTINE GRAF(OI,OF,NTT,NAME)
 *************************************
         IMPLICIT COMPLEX*16 (X-Z)
         IMPLICIT REAL*8 (A-H,O-W)
-
+        CHARACTER(len=*) :: NAME 
         EXTERNAL FERM
         EXTERNAL ZGLOCAL
         EXTERNAL PIMGCOEF1
@@ -2396,10 +2403,11 @@ C        ETTA=1.5d0*TT
         COMMON/OCC/TXFA,TDS,TXFC,TXC,TOT,TSOMA,FRIED,RF,RC
         COMMON/QD2/EF2,VQ2,EL2,TXF2,U2
         COMMON/QD1/EF1,VQ1,EL1,TXF1,U1
-
+        COMMON/DELTA/DELTA
         INTEGER DT81
         PARAMETER (DT81=81)
-      OPEN (UNIT=DT81,FILE='2QDS-U,T=5.5(21.3).dat',STATUS='UNKNOWN')
+        
+      OPEN (UNIT=DT81,FILE=NAME,STATUS='UNKNOWN')
 C ESTA SUBROTINA CALCULA O GRAFICO DA DENSIDADE DE ESTADOS
 C NO EIXO REAL.
         ETA=1.0d-4
@@ -2407,32 +2415,40 @@ C NO EIXO REAL.
         GAM=4.0D0*CC*CC*D*D*VQ2*VQ2/(VQ1*VQ1)
 
         DO 80 K=1,NTT
+        DO 90 I=-100,100
         BW=OI+(K-1)*DM1
-        ZW=DCMPLX(BW,ETA)
-
-        TRA=DIMAG(ZGLOCAL(BW))*DIMAG(ZGLOCAL(BW))+DREAL(ZGLOCAL(BW))*DREAL(ZGLOCAL(BW))
-        TRA=TRA*GAM
-
-        R0F1=-CC*DIMAG(ZGLOCAL(BW))
-        R0F1=DABS(R0F1)
-        R0F2=CC*CC*0.25D0*R0F1*FERM(BW)
-        R0F3=CC*CC*0.25D0*(1.0D0-FERM(BW))*R0F1
-        R0F4=-CC*DIMAG(ZGCON(BW))
-        R0F4=DABS(R0F4)
-        R0F5=CC*CC*0.25D0*R0F4*FERM(BW)
-        R0F6=CC*CC*0.25D0*(1.0D0-FERM(BW))*R0F4
-        ROF7=TRA
-
-
-c        CALL GKONDO(ZW,ZGF,ZGC,ZGFC,ZG11,ZG33,ZG22,ZG44,ZG13,ZG31,
-c     *ZGFXATSS,ZG00,ZM)
-c	R0F1=-CC*DIMAG(ZGF)
-c	R0F2=-CC*DIMAG(ZGC)
-c	R0F3=-CC*DIMAG(ZGFC)
-c	R0F4=-CC*DIMAG(ZG00)
-
+c     Código original:
+c     ZW=DCMPLX(BW,ETA)
+c        TRA=DIMAG(ZGLOCAL(BW))*DIMAG(ZGLOCAL(BW))
+c        TRA=TRA+DREAL(ZGLOCAL(BW))*DREAL(ZGLOCAL(BW))
+c        TRA=TRA*GAM
+c        R0F1=-CC*DIMAG(ZGLOCAL(BW))
+c        R0F1=DABS(R0F1)
+c        R0F2=CC*CC*0.25D0*R0F1*FERM(BW)
+c        R0F3=CC*CC*0.25D0*(1.0D0-FERM(BW))*R0F1
+c        R0F4=-CC*DIMAG(ZGCON(BW))
+c        R0F4=DABS(R0F4)
+c        R0F5=CC*CC*0.25D0*R0F4*FERM(BW)
+c        R0F6=CC*CC*0.25D0*(1.0D0-FERM(BW))*R0F4
+c        ROF7=TRA
+****************************************************************
+c     Código para calcular los Bound states:
+        AW=I*DELTA*1.0d-1
+        GIMLOC=DIMAG(ZGLOCAL(BW,AW))
+        GREALOC=DREAL(ZGLOCAL(BW,AW))
+        TRALOC=DIMAG(ZGLOCAL(BW,AW))*DIMAG(ZGLOCAL(BW,AW))
+        TRALOC=TRA+DREAL(ZGLOCAL(BW,AW))*DREAL(ZGLOCAL(BW,AW))
+        TRALOC=TRA*GAM
+        GIMCON=DIMAG(ZGCON(BW,AW))
+        GREALCON=DREAL(ZGCON(BW,AW))
+        TRACON=(GIMCON*GIMCON+GREALCON*GREALCON)*GAM
 *************************************
-        WRITE(DT81,5800)BW*1.0d2,R0F1,R0F2,R0F3,R0F4,R0F5,R0F6,ROF7
+C     Salida del código original:   
+c     WRITE(DT81,5800)BW*1.0d2,R0F1,R0F2,R0F3,R0F4,R0F5,R0F6,ROF7
+C     Salida del código para calcualr los Bound States:
+      WRITE(DT81,5800)BW*1.0d2,AW*1.0d2,GIMLOC,GREALOC,TRALOC,GIMCON,
+     *GREALCON,TRACON
+90     CONTINUE
 80      CONTINUE
 5800    FORMAT(8F15.8)
         CLOSE(DT81)
@@ -2530,7 +2546,7 @@ c        GAM=VQ2*VQ2/DELTA22
 c        GAM=GAM*GAM
          GAM=4.0D0*CC*CC*D*D*VQ2*VQ2/(VQ1*VQ1)
 
-        ZAT=ZGLOCAL(EW)
+        ZAT=ZGLOCAL(EW,1.0d-6)
         AT=DIMAG(ZAT)*DIMAG(ZAT)+DREAL(ZAT)*DREAL(ZAT)
         AT=AT*GAM
 
@@ -2582,7 +2598,7 @@ c        GAM=1.0D0/DABS(DIMAG(ZN))
 c         GAM=VQ2*VQ2/DELTA22
 c         GAM=GAM*GAM
 
-         ZAT=ZGLOCAL(EW)
+         ZAT=ZGLOCAL(EW,1.0D-6)
 
         AT=DIMAG(ZAT)*DIMAG(ZAT)+DREAL(ZAT)*DREAL(ZAT)
         AT=AT*GAM
@@ -2642,7 +2658,7 @@ c        GAM=1.0D0/DABS(DIMAG(ZN))
 c         GAM=VQ2*VQ2/DELTA22
 c         GAM=GAM*GAM
          
-         ZAT=ZGLOCAL(EW)
+         ZAT=ZGLOCAL(EW,1.0D-6)
 
         AT=DIMAG(ZAT)*DIMAG(ZAT)+DREAL(ZAT)*DREAL(ZAT)  
         AT=AT*GAM
@@ -2731,7 +2747,7 @@ c              FER=1.0d0/(1.0d0+DEXP((EW-AMU)*BETA))
                            
 C              CALL GKONDO(ZW,ZGF,ZGC,ZGFC,ZG11,ZG33,ZG22,ZG44,ZG13,ZG31,
 C     *ZGFXATSS,ZG00,ZM)
-              ZAT=ZGLOCAL(EW)
+              ZAT=ZGLOCAL(EW,ETA)
 *************************************************
               ATRANS=DREAL(ZAT)*DREAL(ZAT)+DIMAG(ZAT)*DIMAG(ZAT)
               ATRANS=ATRANS*GAM 
@@ -2785,7 +2801,7 @@ C MULTIPLIQUEI POR BETA O AL12
            DATA PI /3.14159265358979323D0/
                DELTA=0.01D0
                D=1.0D2*DELTA
-               ETA=1.0D-4
+               ETA=1.0D-6
                EPSIL=1.0D-10
 c               ZN=ZGCON(AMU)
                GAM=4.0D0*CC*CC*D*D*VQ2*VQ2/(VQ1*VQ1)
@@ -2820,7 +2836,7 @@ c              FER=1.0d0/(1.0d0+DEXP((EW-AMU)*BETA))
               
 C              CALL GKONDO(ZW,ZGF,ZGC,ZGFC,ZG11,ZG33,ZG22,ZG44,ZG13,ZG31,
 C     *ZGFXATSS,ZG00,ZM)
-              ZAT=ZGLOCAL(EW)
+              ZAT=ZGLOCAL(EW,ETA)
 *************************************************
 
             ATRANS=DIMAG(ZAT)*DIMAG(ZAT)+DREAL(ZAT)*DREAL(ZAT)
@@ -2873,7 +2889,7 @@ C MULTIPLIQUEI POR BETA O AL12
          OPEN (UNIT=DT76,FILE='AL22.dat',STATUS='UNKNOWN')
          DATA PI /3.14159265358979323D0/
 
-               ETA=1.0D-4
+               ETA=1.0D-6
                EPSIL=1.0D-10
                DELTA=0.01D0
                D=1.0D2*DELTA
@@ -2908,7 +2924,7 @@ c              FER=1.0d0/(1.0d0+DEXP((EW-AMU)*BETA))
 C              CALL GKONDO(ZW,ZGF,ZGC,ZGFC,ZG11,ZG33,ZG22,ZG44,ZG13,ZG31,
 C     *ZGFXATSS,ZG00,ZM)              
 ****************************************************
-              ZAT=ZGLOCAL(EW)
+              ZAT=ZGLOCAL(EW,ETA)
 
             ATRANS=DIMAG(ZAT)*DIMAG(ZAT)+DREAL(ZAT)*DREAL(ZAT)
             ATRANS=ATRANS*GAM
